@@ -12,7 +12,7 @@ import {
 // API SETUP (Axios with Token)
 // ==============================
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/quotations",
+  baseURL: "${import.meta.env.VITE_API_URL}/api/quotations",
 });
 
 API.interceptors.request.use((req) => {
@@ -120,7 +120,7 @@ export default function Dashboard({
   const handleDownload = (id, e) => {
     e.stopPropagation();
     const token = localStorage.getItem("token");
-    window.open(`http://localhost:5000/api/export/pdf/${id}?token=${token}`, "_blank");
+    window.open(`${import.meta.env.VITE_API_URL}/api/export/pdf/${id}?token=${token}`, "_blank");
   };
 
   // Triggers the custom Delete Modal

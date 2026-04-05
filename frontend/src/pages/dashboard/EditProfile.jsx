@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 // 🔥 Set your backend base URL for images here
-const IMG_BASE_URL = "http://localhost:5000/";
+const IMG_BASE_URL = "${import.meta.env.VITE_API_URL}/";
 
 export default function EditProfile({
   user,

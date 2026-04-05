@@ -23,7 +23,7 @@ import AuroraTemplate    from "../../components/theme/AuroraTemplate";
 // Axios instance
 // ─────────────────────────────────────────
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/quotations",
+  baseURL: "${import.meta.env.VITE_API_URL}/api/quotations",
 });
 
 API.interceptors.request.use((req) => {

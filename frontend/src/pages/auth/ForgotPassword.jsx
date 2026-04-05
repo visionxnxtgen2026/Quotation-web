@@ -19,7 +19,7 @@ export default function ForgotPassword({ goToLogin }) {
     setStatus({ type: "", message: "" });
 
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/forgot-password", { email });
+      const response = await axios.post("${import.meta.env.VITE_API_URL}/api/auth/forgot-password", { email });
 
       if (response.data.success) {
         // 🔥 Alert-ஐ தூக்கிவிட்டோம்! அதற்குப் பதிலாக அழகான Inline Success Message

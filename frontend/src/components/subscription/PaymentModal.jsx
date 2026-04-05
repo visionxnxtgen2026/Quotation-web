@@ -17,7 +17,7 @@ export default function PaymentModal({ isOpen, onClose, plan, cycle, price, onSu
     try {
       // 🚀 API CALL TO BACKEND
       const res = await axios.post(
-        "http://localhost:5000/api/subscription/update",
+        "${import.meta.env.VITE_API_URL}/api/subscription/update",
         { plan: plan.toLowerCase(), cycle: cycle }, // basic / pro
         { headers: { Authorization: `Bearer ${token}` } }
       );

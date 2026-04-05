@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { LogOut, User, Crown, Phone, Mail, ChevronUp } from "lucide-react";
 
 // 🔥 Set your backend base URL for images
-const IMG_BASE_URL = "http://localhost:5000/";
+const IMG_BASE_URL = "${import.meta.env.VITE_API_URL}/";
 
 export default function ProfileSection({ 
   user, 

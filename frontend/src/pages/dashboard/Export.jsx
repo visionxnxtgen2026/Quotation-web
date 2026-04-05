@@ -100,7 +100,7 @@ export default function Export({
 
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/export/pdf/${quotationId}?template=${selectedTemplate}`,
+        `${import.meta.env.VITE_API_URL}/api/export/pdf/${quotationId}?template=${selectedTemplate}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: 'blob', // Expecting binary data
@@ -147,7 +147,7 @@ export default function Export({
     if (!email) return;
     setIsSendingEmail(true);
     try {
-      await axios.post("http://localhost:5000/api/export/email", 
+      await axios.post("${import.meta.env.VITE_API_URL}/api/export/email", 
         { quotationId, email, template: selectedTemplate }, 
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -164,7 +164,7 @@ export default function Export({
 
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/export/pdf/${quotationId}?template=${selectedTemplate}`,
+        `${import.meta.env.VITE_API_URL}/api/export/pdf/${quotationId}?template=${selectedTemplate}`,
         { 
           headers: { Authorization: `Bearer ${token}` }, 
           responseType: 'blob',

@@ -54,7 +54,8 @@ export default function Register({ goToLogin }) {
     setMessage({ type: "", text: "" });
 
     try {
-      const res = await fetch(${import.meta.env.VITE_API_URL}/api/auth/resend-otp", {
+      // ✅ FIX 1: Using Plus (+) symbol
+      const res = await fetch(import.meta.env.VITE_API_URL + "/api/auth/resend-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email }),
@@ -88,7 +89,8 @@ export default function Register({ goToLogin }) {
 
       setIsLoading(true);
       try {
-        const res = await fetch(${import.meta.env.VITE_API_URL}/api/auth/register", {
+        // ✅ FIX 2: Using Plus (+) symbol
+        const res = await fetch(import.meta.env.VITE_API_URL + "/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -123,7 +125,8 @@ export default function Register({ goToLogin }) {
 
       setIsLoading(true);
       try {
-        const res = await fetch(${import.meta.env.VITE_API_URL}/api/auth/verify-otp", {
+        // ✅ FIX 3: Using Plus (+) symbol
+        const res = await fetch(import.meta.env.VITE_API_URL + "/api/auth/verify-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

@@ -30,8 +30,8 @@ export default function Login({ goToRegister, goToForgot, goToDashboard }) {
     setIsLoading(true);
 
     try {
-      // Backend API call implementation
-      const res = await fetch(${import.meta.env.VITE_API_URL}/api/auth/login", {
+      // ✅ FIX: Using Plus (+) symbol instead of broken backticks
+      const res = await fetch(import.meta.env.VITE_API_URL + "/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

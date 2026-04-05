@@ -30,7 +30,7 @@ export default function Login({ goToRegister, goToForgot, goToDashboard }) {
     setIsLoading(true);
 
     try {
-      // ✅ FIX: Using Plus (+) symbol instead of broken backticks
+      // ✅ FIX: Using Plus (+) symbol
       const res = await fetch(import.meta.env.VITE_API_URL + "/api/auth/login", {
         method: "POST",
         headers: {
@@ -64,7 +64,6 @@ export default function Login({ goToRegister, goToForgot, goToDashboard }) {
       }
     } catch (error) {
       console.error("API error:", error);
-      // If backend is entirely down, show this error instead of a fake success message
       setMessage({ type: "error", text: "Cannot connect to server. Please try again later." });
     } finally {
       setIsLoading(false);

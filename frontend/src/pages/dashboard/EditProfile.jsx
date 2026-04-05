@@ -9,8 +9,8 @@ import {
   Loader2, ArrowLeft, CheckCircle2, AlertCircle 
 } from "lucide-react";
 
-// 🔥 Set your backend base URL for images here
-const IMG_BASE_URL = "${import.meta.env.VITE_API_URL}/";
+// 🔥 Set your backend base URL for images here (UPDATED TO /uploads)
+const IMG_BASE_URL = `${import.meta.env.VITE_API_URL}/uploads`
 
 export default function EditProfile({
   user,

@@ -108,7 +108,6 @@ export default function Export({
         }
       );
 
-      // Prevent downloading backend error JSONs as corrupted PDFs
       if (response.data.type === "application/json" || response.data.type === "text/html") {
          const text = await response.data.text();
          try {
@@ -147,7 +146,7 @@ export default function Export({
     if (!email) return;
     setIsSendingEmail(true);
     try {
-      await axios.post("${import.meta.env.VITE_API_URL}/api/export/email", 
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/export/email`, 
         { quotationId, email, template: selectedTemplate }, 
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -172,7 +171,6 @@ export default function Export({
         }
       );
 
-      // Prevent downloading backend error JSONs as corrupted PDFs
       if (response.data.type === "application/json" || response.data.type === "text/html") {
          const text = await response.data.text();
          try {

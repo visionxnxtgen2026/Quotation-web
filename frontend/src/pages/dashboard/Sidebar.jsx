@@ -15,7 +15,7 @@ import {
 import ProfileSection from "../../components/profile/ProfileSection"; 
 
 // 🔥 BACKEND URL FOR IMAGES
-const IMG_BASE_URL = "${import.meta.env.VITE_API_URL}/";
+const IMG_BASE_URL = `${import.meta.env.VITE_API_URL}/uploads`
 
 export default function Sidebar({
   active = "dashboard",

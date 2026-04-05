@@ -12,7 +12,7 @@ import {
 // API SETUP (Axios with Token)
 // ==============================
 const API = axios.create({
-  baseURL: "${import.meta.env.VITE_API_URL}/api/quotations",
+  baseURL: `${import.meta.env.VITE_API_URL}/api/auth/register`
 });
 
 API.interceptors.request.use((req) => {

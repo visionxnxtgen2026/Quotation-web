@@ -7,7 +7,7 @@ import ProjectDetailsForm from "../../components/quotation/ProjectDetailsForm";
 import RateTableForm from "../../components/quotation/RateTableForm";
 import TermsPaymentForm from "../../components/quotation/TermsPaymentForm";
 
-const BASE_URL = "${import.meta.env.VITE_API_URL}/api/quotations";
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api/auth/register`
 
 // ==============================
 // 🌐 API CALLS

@@ -19,7 +19,7 @@ export default function ForgotPassword({ goToLogin }) {
     setStatus({ type: "", message: "" });
 
     try {
-      // ✅ FIX: Using Plus (+) symbol to connect the URL properly
+      // ✅ Using Plus (+) symbol to connect the URL properly
       const response = await axios.post(import.meta.env.VITE_API_URL + "/api/auth/forgot-password", { email });
 
       if (response.data.success) {

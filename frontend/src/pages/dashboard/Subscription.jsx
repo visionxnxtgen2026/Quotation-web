@@ -51,7 +51,7 @@ export default function Subscription({
   useEffect(() => {
     const fetchCurrentPlan = async () => {
       try {
-        const res = await axios.get(${import.meta.env.VITE_API_URL}/api/users/profile", {
+        const res = await axios.get(import.meta.env.VITE_API_URL + "/api/users/profile", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data && res.data.plan) {

@@ -92,7 +92,7 @@ export default function Settings({
     try {
       const token = localStorage.getItem("token");
       
-      await axios.delete(${import.meta.env.VITE_API_URL}/api/auth/user/delete", {
+      await axios.delete(import.meta.env.VITE_API_URL + "/api/auth/user/delete", {
         headers: { Authorization: `Bearer ${token}` }
       });
 

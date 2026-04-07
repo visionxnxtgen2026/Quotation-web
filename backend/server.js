@@ -116,11 +116,11 @@ const startServer = async () => {
     // 1. Connect to MongoDB (Fast)
     await connectDB();
 
-    // 2. Start Express Server FIRST 🚀 (Idhu dhaan Railway-ah "Online" aakkum)
-    server = app.listen(PORT, () => {
+    // 2. Start Express Server FIRST with "0.0.0.0" 🚀 (Idhu dhaan Railway fix)
+    server = app.listen(PORT, "0.0.0.0", () => {
       console.log(`
 =============================================
-🚀 VisionX Server : http://localhost:${PORT}
+🚀 VisionX Server : Publicly running on port ${PORT} (0.0.0.0)
 📦 Environment    : ${process.env.NODE_ENV || 'development'}
 =============================================`);
 

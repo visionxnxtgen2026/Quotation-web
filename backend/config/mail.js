@@ -3,13 +3,18 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// 🚀 Create Nodemailer Transporter using Gmail
+// 🚀 Create Nodemailer Transporter using Gmail SMTP (Fixed for Railway IPv6 issues)
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // use SSL
   auth: {
     user: process.env.EMAIL_USER, // Unga Gmail ID
     pass: process.env.EMAIL_PASS, // Unga 16-digit App Password
   },
+  tls: {
+    rejectUnauthorized: false // 🔥 Railway network strict blocks-ah thavirkka idhu thevai
+  }
 });
 
 /**
@@ -17,14 +22,17 @@ const transporter = nodemailer.createTransport({
  */
 export const verifyMailConnection = async () => {
   try {
-    // Transporter correct-ah connect aagudhaa nu check pannum
-    await transporter.verify();
+    // Transporter-ah connect panna 10 seconds timeout veippom. Appo thaan app nirkkaama run aagum.
+    await Promise.race([
+      transporter.verify(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Mail Timeout")), 10000))
+    ]);
     console.log("✅ Mail Server: Connected and Ready (Nodemailer Active)");
     return true;
   } catch (error) {
     console.error("❌ Mail Server Verification Error:", error.message);
     console.warn("⚠️ Hint: Check your EMAIL_USER and EMAIL_PASS in .env");
-    return false;
+    return false; // Error vandhaalum false return pannum, server crash aagadhu
   }
 };
 

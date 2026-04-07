@@ -113,25 +113,27 @@ let server;
 
 const startServer = async () => {
   try {
-    // 1. Connect to MongoDB
+    // 1. Connect to MongoDB (Fast)
     await connectDB();
 
-    // 2. Verify Advanced Mail Transporter (from config/mail.js)
-    if (typeof verifyMailConnection === 'function') {
-      await verifyMailConnection();
-    }
-
-    // 3. Start Express Server
+    // 2. Start Express Server FIRST 🚀 (Idhu dhaan Railway-ah "Online" aakkum)
     server = app.listen(PORT, () => {
       console.log(`
 =============================================
 🚀 VisionX Server : http://localhost:${PORT}
 📦 Environment    : ${process.env.NODE_ENV || 'development'}
 =============================================`);
+
+      // 3. Verify Mail Connection in the BACKGROUND
+      // Notice: No "await" here. Server won't wait for mail verification to finish.
+      if (typeof verifyMailConnection === 'function') {
+        verifyMailConnection();
+      }
     });
+
   } catch (error) {
     console.error("❌ Startup Error:", error.message);
-    process.exit(1); // Kill process if DB or Server fails
+    process.exit(1); // Kill process if DB fails
   }
 };
 
@@ -151,4 +153,4 @@ const shutdown = (signal) => {
 };
 
 process.on("SIGINT", () => shutdown("SIGINT"));   // Handles Ctrl+C in terminal
-process.on("SIGTERM", () => shutdown("SIGTERM")); // Handles termination from hosting providers (Render/AWS)
+process.on("SIGTERM", () => shutdown("SIGTERM")); // Handles termination from hosting providers (Render/Railway/AWS)

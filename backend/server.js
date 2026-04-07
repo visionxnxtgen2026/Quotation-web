@@ -1,150 +1,151 @@
 // ==============================
-// 🔐 PRE-LOAD ENV (ES MODULE FIX)
+// 🔐 PRE-LOAD ENV
 // ==============================
-import "dotenv/config"; 
+import "dotenv/config";
 
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
-import fs from "fs"; 
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 // ==============================
 // ⚙️ CONFIG & ROUTES
 // ==============================
 import connectDB from "./config/db.js";
-import { verifyMailConnection } from "./config/mail.js"; // 🔥 Advanced Mail Service Check
+import { verifyMailConnection } from "./config/mail.js";
 
-// ⚠️ Note: Ensure these filenames exactly match the files in your /routes folder!
-import authRoutes from "./routes/authRoutes.js"; 
+import authRoutes from "./routes/authRoutes.js";
 import quotationRoutes from "./routes/quotationRoutes.js";
 import exportRoutes from "./routes/exportRoutes.js";
-import userRoutes from "./routes/userRoutes.js";               
-import subscriptionRoutes from "./routes/subscriptionRoutes.js"; 
+import userRoutes from "./routes/userRoutes.js";
+import subscriptionRoutes from "./routes/subscriptionRoutes.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 // ==============================
-// 🚀 INIT APP & PATHS
+// 🚀 INIT APP
 // ==============================
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 🔥 Auto-create ALL upload folders so Multer/PDF generation doesn't crash
+// ==============================
+// 📁 CREATE UPLOAD FOLDERS
+// ==============================
 const uploadDirs = [
   path.join(__dirname, "uploads"),
-  path.join(__dirname, "uploads", "profiles"), // Explicitly create profiles folder
+  path.join(__dirname, "uploads", "profiles"),
 ];
 
 uploadDirs.forEach((dir) => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
-    console.log(`📁 Created directory: ${dir}`);
+    console.log(`📁 Created: ${dir}`);
   }
 });
 
 // ==============================
 // 🔒 SECURITY & CORS
 // ==============================
-app.use(helmet({
-  crossOriginResourcePolicy: false, // ✅ Critical: Allows frontend to display uploaded images & PDFs
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 
-// Allowed frontend URLs
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://quotation-web-wheat.vercel.app", // 🔥 EXPLICITLY ADDED YOUR VERCEL URL
+  "https://quotation-web-wheat.vercel.app",
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allows Postman / Local requests (when origin is undefined) OR specific allowed domains
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error("CORS Blocked by VisionX Security ❌"), false);
-  },
-  credentials: true, // Allow cookies/tokens to be sent
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("CORS Blocked ❌"), false);
+    },
+    credentials: true,
+  })
+);
 
 // ==============================
-// 🧠 MIDDLEWARES 
+// 🧠 MIDDLEWARES
 // ==============================
-// 🔥 Increased limit to 50mb for handling Base64 Company Logos securely
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// 📂 SERVE STATIC FILES
-// This makes http://localhost:5000/uploads/image.jpg accessible to the frontend
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 if (process.env.NODE_ENV !== "production") {
-  app.use(morgan("dev")); // Logs HTTP requests in terminal
+  app.use(morgan("dev"));
 }
 
 // ==============================
-// 🚀 MAIN API ROUTES
+// 🚀 ROUTES
 // ==============================
 app.get("/", (req, res) => {
-  res.status(200).json({ success: true, message: "VisionX API is running 🚀" });
+  res.json({ success: true, message: "VisionX API running 🚀" });
 });
 
-// Mount modular routes
-app.use("/api/auth", authRoutes);                 // Handles Login, OTP, and Reset Password Links
-app.use("/api/quotations", quotationRoutes);      // Handles CRUD for quotations
-app.use("/api/export", exportRoutes);             // Handles PDF Generation & Email Sharing
-app.use("/api/users", userRoutes);                // Handles User Profile
-app.use("/api/subscription", subscriptionRoutes); // Handles Pro Upgrades
+app.use("/api/auth", authRoutes);
+app.use("/api/quotations", quotationRoutes);
+app.use("/api/export", exportRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 
 // ==============================
 // ❌ ERROR HANDLERS
 // ==============================
-app.use(notFound);       // Catches 404 routes
-app.use(errorHandler);   // Catches unhandled errors and formats them
+app.use(notFound);
+app.use(errorHandler);
 
 // ==============================
-// 🚀 START SERVER & SERVICES (Bulletproof Railway Fix)
+// 🚀 START SERVER (RAILWAY SAFE)
 // ==============================
-const PORT = process.env.PORT || 8080; // Changed default to 8080
+const PORT = process.env.PORT; // 🔥 IMPORTANT (no hardcode)
+
 let server;
 
-const startServer = () => { // Removed 'async' to avoid waiting
+const startServer = () => {
   try {
-    // 1. Start Express Server FIRST 🚀 (Railway health check passes instantly)
+    // ✅ START SERVER FIRST
     server = app.listen(PORT, "0.0.0.0", () => {
       console.log(`
-=============================================
-🚀 VisionX Server : http://0.0.0.0:${PORT}
-📦 Status         : Online & Ready
-=============================================`);
+====================================
+🚀 Server Running on PORT ${PORT}
+====================================
+      `);
 
-      // 2. Connect to MongoDB in the BACKGROUND
-      // Ippo idhu late aanaalum Railway app-ah kill pannadhu
-      connectDB().catch(err => console.error("❌ DB Background Error:", err));
+      // ✅ DB CONNECT (BACKGROUND)
+      connectDB().catch((err) =>
+        console.error("❌ DB Error:", err.message)
+      );
 
-      // 3. Verify Mail Connection in the BACKGROUND
-      if (typeof verifyMailConnection === 'function') {
-        verifyMailConnection();
+      // ✅ MAIL CHECK (SAFE VERSION)
+      if (typeof verifyMailConnection === "function") {
+        verifyMailConnection().catch((err) => {
+          console.log("⚠️ Mail failed, server still running");
+        });
       }
     });
-
   } catch (error) {
     console.error("❌ Startup Error:", error.message);
-    process.exit(1); 
+    process.exit(1);
   }
 };
 
 startServer();
 
 // ==============================
-// 🛑 GRACEFUL SHUTDOWN
+// 🛑 SHUTDOWN
 // ==============================
-// Ensures ongoing requests (like PDF generation) finish before the server turns off
 const shutdown = (signal) => {
-  console.log(`\n🛑 ${signal} received. Shutting down VisionX Server safely...`);
+  console.log(`\n🛑 ${signal} received. Shutting down...`);
   if (server) {
     server.close(() => process.exit(0));
   } else {
@@ -152,5 +153,5 @@ const shutdown = (signal) => {
   }
 };
 
-process.on("SIGINT", () => shutdown("SIGINT"));   // Handles Ctrl+C in terminal
-process.on("SIGTERM", () => shutdown("SIGTERM")); // Handles termination from hosting providers (Render/Railway/AWS)
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));

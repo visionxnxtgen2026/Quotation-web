@@ -15,7 +15,7 @@ import { fileURLToPath } from "url";
 // ⚙️ CONFIG & ROUTES
 // ==============================
 import connectDB from "./config/db.js";
-import { verifyMailConnection } from "./config/mail.js"; // ✅ SendGrid verified
+import { verifyMailConnection } from "./config/mail.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import quotationRoutes from "./routes/quotationRoutes.js";
@@ -64,9 +64,12 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) return callback(null, true); // ✅ allow Postman / server calls
+
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
+
       return callback(new Error("CORS Blocked ❌"), false);
     },
     credentials: true,
@@ -88,7 +91,6 @@ if (process.env.NODE_ENV !== "production") {
 // ==============================
 // 🚀 ROUTES & HEALTH CHECK
 // ==============================
-// 🔥 Railway Health Check Route
 app.get("/health", (req, res) => res.status(200).send("OK"));
 
 app.get("/", (req, res) => {
@@ -108,32 +110,39 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ==============================
-// 🚀 START SERVER (RAILWAY SAFE)
+// 🚀 START SERVER (FIXED)
 // ==============================
-const PORT = process.env.PORT || 8080; // ✅ Railway dynamic port fallback
+const PORT = process.env.PORT || 8080;
 
 let server;
 
-const startServer = () => {
+const startServer = async () => {
   try {
-    // ✅ START SERVER FIRST (Crucial for Railway)
-    server = app.listen(PORT, "0.0.0.0", () => {
-      console.log(`
-====================================
-🚀 Server Running on PORT ${PORT}
-====================================
-      `);
+    // ✅ START SERVER FIRST (Railway safe)
+    server = app.listen(PORT, "0.0.0.0", async () => {
+      console.log(`🚀 Server running on port ${PORT}`);
 
-      // ✅ DB CONNECT (BACKGROUND)
-      connectDB().catch((err) =>
-        console.error("❌ DB Error:", err.message)
-      );
+      // ✅ DB CONNECT (background)
+      try {
+        await connectDB();
+        console.log("✅ Database connected");
+      } catch (err) {
+        console.error("❌ DB Error:", err.message);
+      }
 
-      // ✅ MAIL CHECK (BACKGROUND)
-      if (typeof verifyMailConnection === "function") {
-        verifyMailConnection().catch((err) => {
-          console.log("⚠️ Mail check failed, but server is still running safely");
-        });
+      // ✅ MAIL CHECK (fixed logic)
+      try {
+        if (typeof verifyMailConnection === "function") {
+          const mailReady = await verifyMailConnection();
+
+          if (mailReady) {
+            console.log("✅ Mail Service Ready");
+          } else {
+            console.log("⚠️ Mail Service NOT configured");
+          }
+        }
+      } catch (err) {
+        console.log("⚠️ Mail check failed, but server still running");
       }
     });
   } catch (error) {
@@ -145,7 +154,7 @@ const startServer = () => {
 startServer();
 
 // ==============================
-// 🛑 SHUTDOWN
+// 🛑 SHUTDOWN HANDLER
 // ==============================
 const shutdown = (signal) => {
   console.log(`\n🛑 ${signal} received. Shutting down...`);

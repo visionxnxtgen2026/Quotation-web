@@ -99,6 +99,7 @@ export default function Export({
     showToast("Generating Premium PDF... ⏳", "success");
 
     try {
+      // 🔥 BUG FIXED: Changed localhost:5000 to dynamic VITE_API_URL
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/export/pdf/${quotationId}?template=${selectedTemplate}`,
         {
@@ -108,6 +109,7 @@ export default function Export({
         }
       );
 
+      // Prevent downloading backend error JSONs as corrupted PDFs
       if (response.data.type === "application/json" || response.data.type === "text/html") {
          const text = await response.data.text();
          try {
@@ -146,6 +148,7 @@ export default function Export({
     if (!email) return;
     setIsSendingEmail(true);
     try {
+      // 🔥 BUG FIXED: Changed localhost:5000 to dynamic VITE_API_URL
       await axios.post(`${import.meta.env.VITE_API_URL}/api/export/email`, 
         { quotationId, email, template: selectedTemplate }, 
         { headers: { Authorization: `Bearer ${token}` } }
@@ -162,6 +165,7 @@ export default function Export({
     showToast("Preparing WhatsApp file... ⏳", "success");
 
     try {
+      // 🔥 BUG FIXED: Changed localhost:5000 to dynamic VITE_API_URL
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/export/pdf/${quotationId}?template=${selectedTemplate}`,
         { 
@@ -171,6 +175,7 @@ export default function Export({
         }
       );
 
+      // Prevent downloading backend error JSONs as corrupted PDFs
       if (response.data.type === "application/json" || response.data.type === "text/html") {
          const text = await response.data.text();
          try {

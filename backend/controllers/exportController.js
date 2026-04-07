@@ -1,7 +1,7 @@
 import Quotation from "../models/Quotation.js";
 import { generateQuotationPDF } from "../services/pdfService.js";
-import { sendQuotationPDFEmail } from "../config/mail.js"; // 🔥 Uses Resend logic
-import { Writable } from "stream";
+import { sendQuotationPDFEmail } from "../config/mail.js"; // 🔥 SendGrid Logic
+import { PassThrough } from "stream";
 
 /**
  * Valid template slugs (Matches Frontend TemplateSelector.jsx)
@@ -37,7 +37,7 @@ export const downloadPDF = async (req, res) => {
       });
     }
 
-    // 2. Build a Professional Filename (e.g., Quotation_QTN-101_ClientName.pdf)
+    // 2. Build a Professional Filename
     const clientName = quotation.projectDetails?.clientName || "Document";
     const quoteNo = quotation.projectDetails?.referenceNo || "Draft";
     
@@ -47,13 +47,12 @@ export const downloadPDF = async (req, res) => {
     const fileName = `Quotation_${safeQuoteNo}_${safeClientName}.pdf`;
 
     // 3. Set proper HTTP headers for PDF streaming
-    // 🔥 FIX: Prevent Express from treating it as an API JSON response
     res.status(200);
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`); // Safe binary download
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`); 
     res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
 
-    // 4. Stream PDF directly to the browser (Zero memory bloat)
+    // 4. Stream PDF directly to the browser
     await generateQuotationPDF(quotation, res, template);
     
   } catch (error) {
@@ -101,31 +100,35 @@ export const sendEmail = async (req, res) => {
       });
     }
 
-    // 3. Generate PDF into a memory buffer (Required for Resend email attachments)
+    // 3. Generate PDF into a memory buffer (PassThrough is safer here)
+    const stream = new PassThrough();
     const chunks = [];
-    const bufferStream = new Writable({
-      write(chunk, encoding, next) {
-        chunks.push(chunk);
-        next();
-      },
-    });
 
-    // Wait for the PDF kit to finish writing to the buffer stream
-    await new Promise((resolve, reject) => {
-      bufferStream.on("finish", resolve);
-      bufferStream.on("error", reject);
-      generateQuotationPDF(quotation, bufferStream, template).catch(reject);
-    });
+    stream.on("data", (chunk) => chunks.push(chunk));
 
-    const pdfBuffer = Buffer.concat(chunks); // 🔥 Clean Binary PDF Data for attachment
+    const pdfBuffer = await new Promise((resolve, reject) => {
+      stream.on("end", () => resolve(Buffer.concat(chunks)));
+      stream.on("error", reject);
+
+      // 🔥 THE FIX: Mock Express 'res' object methods!
+      // Since generateQuotationPDF expects an Express response, we give it dummy functions
+      // so it doesn't crash when trying to call res.setHeader()
+      const mockRes = stream;
+      mockRes.setHeader = () => {}; 
+      mockRes.headersSent = false;
+      mockRes.status = () => mockRes;
+      mockRes.json = (errData) => reject(new Error(errData?.message || "PDF generation failed"));
+
+      // Trigger the PDF generator
+      generateQuotationPDF(quotation, mockRes, template).catch(reject);
+    });
 
     // 4. Extract contextual data for the email body
     const clientName  = quotation.projectDetails?.clientName  || "Valued Client";
     const companyName = quotation.projectDetails?.companyName || "Our Company";
     const quoteNo     = quotation.projectDetails?.referenceNo || "Draft";
 
-    // 5. Send via the mail service (Resend)
-    // ⚠️ NOTE: Since you are on Resend Free Tier, the 'email' input MUST be your registered email.
+    // 5. Send via the mail service (SendGrid)
     await sendQuotationPDFEmail(email, clientName, pdfBuffer, companyName, quoteNo);
 
     // 6. Success response

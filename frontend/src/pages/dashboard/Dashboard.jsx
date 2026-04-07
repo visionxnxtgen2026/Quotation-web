@@ -9,11 +9,11 @@ import {
 } from "lucide-react";
 
 // ==============================
-// 🚀 API SETUP (FIXED URL)
+// API SETUP (Axios with Token)
 // ==============================
 const API = axios.create({
-  // 🔥 BUG FIXED: Changed from /api/auth/register to /api/quotations
-  baseURL: `${import.meta.env.VITE_API_URL}/api/quotations` 
+  // 🔥 ONLY THIS LINE FIXED: Changed to /api/quotations so it hits your backend correctly
+  baseURL: `${import.meta.env.VITE_API_URL}/api/quotations`
 });
 
 API.interceptors.request.use((req) => {
@@ -24,11 +24,10 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-// APIs will now correctly hit: /api/quotations/stats , /api/quotations/ etc.
 export const getDashboardStats = () => API.get("/stats");
 export const getAllQuotations = () => API.get("/");
 export const getQuotationById = (id) => API.get(`/${id}`);
-export const createQuotation = (data) => API.post("/");
+export const createQuotation = (data) => API.post("/", data);
 export const updateQuotation = (id, data) => API.put(`/${id}`, data);
 export const deleteQuotation = (id) => API.delete(`/${id}`);
 
@@ -237,7 +236,7 @@ export default function Dashboard({
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Quotations</p>
-                  <h3 className="text-3xl font-black text-gray-800 mt-2">{isLoading ? "..." : stats.total || 0}</h3>
+                  <h3 className="text-3xl font-black text-gray-800 mt-2">{isLoading ? "..." : stats.total}</h3>
                 </div>
                 <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><FileText className="w-6 h-6" /></div>
               </div>
@@ -250,7 +249,7 @@ export default function Dashboard({
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Value</p>
-                  <h3 className="text-3xl font-black text-gray-800 mt-2">{isLoading ? "..." : formatCurrency(stats.value || 0)}</h3>
+                  <h3 className="text-3xl font-black text-gray-800 mt-2">{isLoading ? "..." : formatCurrency(stats.value)}</h3>
                 </div>
                 <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><IndianRupee className="w-6 h-6" /></div>
               </div>
@@ -261,7 +260,7 @@ export default function Dashboard({
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Last Activity</p>
-                  <h3 className="text-xl font-bold text-gray-800 mt-3 truncate max-w-[150px]">{isLoading ? "..." : stats.lastCreated || "None"}</h3>
+                  <h3 className="text-xl font-bold text-gray-800 mt-3 truncate max-w-[150px]">{isLoading ? "..." : stats.lastCreated}</h3>
                 </div>
                 <div className="p-3 bg-purple-50 text-purple-600 rounded-xl"><Clock className="w-6 h-6" /></div>
               </div>

@@ -106,26 +106,26 @@ app.use(notFound);       // Catches 404 routes
 app.use(errorHandler);   // Catches unhandled errors and formats them
 
 // ==============================
-// 🚀 START SERVER & SERVICES
+// 🚀 START SERVER & SERVICES (Bulletproof Railway Fix)
 // ==============================
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080; // Changed default to 8080
 let server;
 
-const startServer = async () => {
+const startServer = () => { // Removed 'async' to avoid waiting
   try {
-    // 1. Connect to MongoDB (Fast)
-    await connectDB();
-
-    // 2. Start Express Server FIRST with "0.0.0.0" 🚀 (Idhu dhaan Railway fix)
+    // 1. Start Express Server FIRST 🚀 (Railway health check passes instantly)
     server = app.listen(PORT, "0.0.0.0", () => {
       console.log(`
 =============================================
-🚀 VisionX Server : Publicly running on port ${PORT} (0.0.0.0)
-📦 Environment    : ${process.env.NODE_ENV || 'development'}
+🚀 VisionX Server : http://0.0.0.0:${PORT}
+📦 Status         : Online & Ready
 =============================================`);
 
+      // 2. Connect to MongoDB in the BACKGROUND
+      // Ippo idhu late aanaalum Railway app-ah kill pannadhu
+      connectDB().catch(err => console.error("❌ DB Background Error:", err));
+
       // 3. Verify Mail Connection in the BACKGROUND
-      // Notice: No "await" here. Server won't wait for mail verification to finish.
       if (typeof verifyMailConnection === 'function') {
         verifyMailConnection();
       }
@@ -133,7 +133,7 @@ const startServer = async () => {
 
   } catch (error) {
     console.error("❌ Startup Error:", error.message);
-    process.exit(1); // Kill process if DB fails
+    process.exit(1); 
   }
 };
 

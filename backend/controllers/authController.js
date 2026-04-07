@@ -1,10 +1,11 @@
-import crypto from "crypto"; // 🔥 ADDED: For generating secure reset tokens
+import crypto from "crypto"; 
 import User from "../models/User.js";
 import Quotation from "../models/Quotation.js";
 import generateOtp, { getOtpExpiry } from "../utils/generateOtp.js";
-import sendEmail from "../utils/sendEmail.js"; // For OTP emails
-import { sendPasswordResetEmail } from "../config/mail.js"; // 🔥 ADDED: For Reset Link emails
 import generateToken from "../utils/generateToken.js";
+
+// 🔥 FIX: Removed old sendEmail.js and imported SendGrid functions from mail.js
+import { sendPasswordResetEmail, sendOTPEmail } from "../config/mail.js"; 
 
 // ==============================
 // 🔐 REGISTER + SEND OTP
@@ -28,11 +29,11 @@ export const registerUser = async (req, res) => {
 
     // 🚀 --- TRIAL EXPIRY LOGIC (NEW) --- 🚀
     const currentDate = new Date();
-    const cutoffDate = new Date("2026-06-01T00:00:00Z"); // ஜூன் 1, 2026-க்கு முன்னாடி
+    const cutoffDate = new Date("2026-06-01T00:00:00Z"); 
     
-    let trialDays = 10; // Default ah 10 நாட்கள் (ஜூன் 1-க்கு பிறகு வருபவர்களுக்கு)
+    let trialDays = 10; 
     if (currentDate < cutoffDate) {
-      trialDays = 90; // மே 31 அல்லது அதற்கு முன் வருபவர்களுக்கு 90 நாட்கள்
+      trialDays = 90; 
     }
 
     const trialExpiresAt = new Date(currentDate);
@@ -47,17 +48,19 @@ export const registerUser = async (req, res) => {
         password, 
         otp,
         otpExpires: expiry,
-        trialExpiresAt: trialExpiresAt, // 👈 Save the calculated expiry date
+        trialExpiresAt: trialExpiresAt, 
       });
     } else {
       user.otp = otp;
       user.otpExpires = expiry;
       user.password = password; 
-      user.trialExpiresAt = trialExpiresAt; // Update if they are re-registering before verification
+      user.trialExpiresAt = trialExpiresAt; 
     }
 
     await user.save();
-    await sendEmail(email, otp);
+    
+    // 🔥 FIX: Using SendGrid OTP function
+    await sendOTPEmail(email, otp);
 
     res.json({ message: "OTP sent to email" });
 
@@ -74,12 +77,10 @@ export const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    // 🔥 Safety Check: Remove any spaces if coming from frontend
     const cleanOtp = otp ? otp.toString().replace(/\s/g, "") : "";
 
     const user = await User.findOne({ email }).select("+otp +otpExpires");
 
-    // 🔍 DEBUG: Check this in your VS Code Terminal
     console.log("--- OTP VERIFICATION ---");
     console.log("Email:", email);
     console.log("Received OTP (Clean):", `|${cleanOtp}|`);
@@ -134,7 +135,9 @@ export const resendOtp = async (req, res) => {
     user.otpExpires = getOtpExpiry(5);
 
     await user.save();
-    await sendEmail(email, otp);
+    
+    // 🔥 FIX: Using SendGrid OTP function
+    await sendOTPEmail(email, otp);
 
     res.json({ success: true, message: "New OTP sent successfully! 📩" });
 
@@ -187,18 +190,14 @@ export const forgotPassword = async (req, res) => {
       return res.status(404).json({ success: false, message: "No account found with this email ❌" });
     }
 
-    // 1. Generate Secure Token
     const resetToken = crypto.randomBytes(32).toString("hex");
 
-    // 2. Save Token & Expiry (1 Hour) to DB
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = Date.now() + 3600000; 
     await user.save();
 
-    // 3. Create Reset Link (Frontend URL)
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
-    // 4. Send Email using the advanced template we created
     await sendPasswordResetEmail(user.email, resetUrl);
 
     res.json({ success: true, message: "Reset link sent successfully to your email! ✅" });
@@ -213,25 +212,21 @@ export const forgotPassword = async (req, res) => {
 // 🔑 RESET PASSWORD (UPDATE DB)
 // ==============================
 export const resetPassword = async (req, res) => {
-  // Token now comes from the URL parameter, not the body
   const { token } = req.params; 
   const { password } = req.body;
 
   try {
-    // Check if token matches and has not expired
     const user = await User.findOne({ 
       resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() } // $gt means Greater Than current time
+      resetPasswordExpires: { $gt: Date.now() } 
     });
 
     if (!user) {
       return res.status(400).json({ success: false, message: "Invalid or expired reset link. ❌" });
     }
 
-    // Update password (Mongoose pre-save hook will hash it automatically)
     user.password = password; 
     
-    // Clear the reset token fields
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     
@@ -289,10 +284,7 @@ export const deleteUserAccount = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
 
-    // 1. Delete all quotations associated with this user
     await Quotation.deleteMany({ user: userId });
-
-    // 2. Delete the user document itself
     const user = await User.findByIdAndDelete(userId);
 
     if (!user) {

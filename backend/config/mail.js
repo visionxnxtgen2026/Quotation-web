@@ -1,24 +1,29 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// 🚀 Create Nodemailer Transporter using Gmail
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER, // Unga Gmail ID
+    pass: process.env.EMAIL_PASS, // Unga 16-digit App Password
+  },
+});
 
 /**
  * 🚀 0. Verify Mail Connection (For server.js startup check)
  */
 export const verifyMailConnection = async () => {
   try {
-    if (process.env.RESEND_API_KEY) {
-      console.log("✅ Mail Server: Connected and Ready (Resend API Active)");
-      return true;
-    } else {
-      console.warn("⚠️ Mail Server: RESEND_API_KEY is missing in .env");
-      return false;
-    }
+    // Transporter correct-ah connect aagudhaa nu check pannum
+    await transporter.verify();
+    console.log("✅ Mail Server: Connected and Ready (Nodemailer Active)");
+    return true;
   } catch (error) {
-    console.error("❌ Mail Server Verification Error:", error);
+    console.error("❌ Mail Server Verification Error:", error.message);
+    console.warn("⚠️ Hint: Check your EMAIL_USER and EMAIL_PASS in .env");
     return false;
   }
 };
@@ -28,15 +33,15 @@ export const verifyMailConnection = async () => {
  */
 export const sendQuotationPDFEmail = async (toEmail, clientName, pdfBuffer, companyName, quoteNo) => {
   try {
-    const data = await resend.emails.send({
-      from: 'VisionX <onboarding@resend.dev>',
-      to: [toEmail],
+    const info = await transporter.sendMail({
+      from: `"VisionX" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
       subject: `Your Quotation (${quoteNo}) from ${companyName}`,
       html: `<h2>Hello ${clientName},</h2><p>Please find your quotation attached.</p>`,
       attachments: [{ filename: `Quotation_${quoteNo}.pdf`, content: pdfBuffer }],
     });
     console.log("✅ PDF Email Sent!");
-    return { success: true, data };
+    return { success: true, data: info };
   } catch (error) {
     console.error("❌ PDF Email Error:", error);
     throw error;
@@ -48,14 +53,14 @@ export const sendQuotationPDFEmail = async (toEmail, clientName, pdfBuffer, comp
  */
 export const sendOTPEmail = async (toEmail, otp) => {
   try {
-    const data = await resend.emails.send({
-      from: 'VisionX Auth <onboarding@resend.dev>',
-      to: [toEmail],
+    const info = await transporter.sendMail({
+      from: `"VisionX Auth" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
       subject: 'Your Login OTP - VisionX',
-      html: `<div style="text-align:center;"><h2>Security Code</h2><h1>${otp}</h1></div>`,
+      html: `<div style="text-align:center;"><h2>Security Code</h2><h1 style="color: #2563eb; letter-spacing: 5px;">${otp}</h1></div>`,
     });
     console.log("✅ OTP Email Sent!");
-    return { success: true, data };
+    return { success: true, data: info };
   } catch (error) {
     console.error("❌ OTP Error:", error);
     throw error;
@@ -67,9 +72,9 @@ export const sendOTPEmail = async (toEmail, otp) => {
  */
 export const sendPasswordResetEmail = async (toEmail, resetLink) => {
   try {
-    const data = await resend.emails.send({
-      from: 'VisionX Support <onboarding@resend.dev>',
-      to: [toEmail],
+    const info = await transporter.sendMail({
+      from: `"VisionX Support" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
       subject: 'Reset Your VisionX Password',
       html: `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -83,7 +88,7 @@ export const sendPasswordResetEmail = async (toEmail, resetLink) => {
       `,
     });
     console.log("✅ Password Reset Email Sent!");
-    return { success: true, data };
+    return { success: true, data: info };
   } catch (error) {
     console.error("❌ Reset Email Error:", error);
     throw error;

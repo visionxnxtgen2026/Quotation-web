@@ -107,7 +107,7 @@ app.use(errorHandler);
 // ==============================
 // 🚀 START SERVER (RAILWAY SAFE)
 // ==============================
-const PORT = process.env.PORT || 8080; // 🔥 Added Fallback (8080) for safety
+const PORT = process.env.PORT; // 🔥 Added Fallback (8080) for safety
 
 let server;
 

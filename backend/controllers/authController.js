@@ -3,8 +3,6 @@ import User from "../models/User.js";
 import Quotation from "../models/Quotation.js";
 import generateOtp, { getOtpExpiry } from "../utils/generateOtp.js";
 import generateToken from "../utils/generateToken.js";
-
-// 🔥 FIX: Removed old sendEmail.js and imported SendGrid functions from mail.js
 import { sendPasswordResetEmail, sendOTPEmail } from "../config/mail.js"; 
 
 // ==============================
@@ -59,10 +57,15 @@ export const registerUser = async (req, res) => {
 
     await user.save();
     
-    // 🔥 FIX: Using SendGrid OTP function
+    // 🔥 DEBUG: OTP-ah Railway Logs-la kaatta idhai add panniruken!
+    console.log(`\n======================================`);
+    console.log(`🚀 🔥 GOD MODE OTP FOR ${email}: ${otp} 🔥 🚀`);
+    console.log(`======================================\n`);
+
+    // Mail anuppura function call
     await sendOTPEmail(email, otp);
 
-    res.json({ message: "OTP sent to email" });
+    res.json({ message: "OTP generated successfully!" });
 
   } catch (err) {
     console.error("Register Error:", err.message);
@@ -136,10 +139,14 @@ export const resendOtp = async (req, res) => {
 
     await user.save();
     
-    // 🔥 FIX: Using SendGrid OTP function
+    // 🔥 DEBUG: Resend pannaalum logs-la kaatta idhai add panniruken!
+    console.log(`\n======================================`);
+    console.log(`🚀 🔥 RESENT OTP FOR ${email}: ${otp} 🔥 🚀`);
+    console.log(`======================================\n`);
+
     await sendOTPEmail(email, otp);
 
-    res.json({ success: true, message: "New OTP sent successfully! 📩" });
+    res.json({ success: true, message: "New OTP generated successfully! 📩" });
 
   } catch (err) {
     console.error("Resend OTP Error:", err.message);

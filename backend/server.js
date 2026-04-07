@@ -15,7 +15,7 @@ import { fileURLToPath } from "url";
 // ⚙️ CONFIG & ROUTES
 // ==============================
 import connectDB from "./config/db.js";
-import { verifyMailConnection } from "./config/mail.js"; // ✅ Re-enabled for SendGrid!
+import { verifyMailConnection } from "./config/mail.js"; // ✅ SendGrid verified
 
 import authRoutes from "./routes/authRoutes.js";
 import quotationRoutes from "./routes/quotationRoutes.js";
@@ -86,8 +86,11 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // ==============================
-// 🚀 ROUTES
+// 🚀 ROUTES & HEALTH CHECK
 // ==============================
+// 🔥 Railway Health Check Route
+app.get("/health", (req, res) => res.status(200).send("OK"));
+
 app.get("/", (req, res) => {
   res.json({ success: true, message: "VisionX API running 🚀" });
 });
@@ -107,13 +110,13 @@ app.use(errorHandler);
 // ==============================
 // 🚀 START SERVER (RAILWAY SAFE)
 // ==============================
-const PORT = process.env.PORT || 8080; // ✅ Added fallback for safety
+const PORT = process.env.PORT || 8080; // ✅ Railway dynamic port fallback
 
 let server;
 
 const startServer = () => {
   try {
-    // ✅ START SERVER FIRST
+    // ✅ START SERVER FIRST (Crucial for Railway)
     server = app.listen(PORT, "0.0.0.0", () => {
       console.log(`
 ====================================
@@ -126,7 +129,7 @@ const startServer = () => {
         console.error("❌ DB Error:", err.message)
       );
 
-      // ✅ MAIL CHECK (SENDGRID VERIFIED)
+      // ✅ MAIL CHECK (BACKGROUND)
       if (typeof verifyMailConnection === "function") {
         verifyMailConnection().catch((err) => {
           console.log("⚠️ Mail check failed, but server is still running safely");

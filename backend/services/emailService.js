@@ -1,6 +1,12 @@
-import { sendMail } from "../config/mail.js";
+import sgMail from '@sendgrid/mail';
 import { generateQuotationPDF } from "./pdfService.js";
 import { PassThrough } from "stream";
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Initialize SendGrid with API Key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 /**
  * Helper function to generate PDF as a memory buffer
@@ -36,7 +42,7 @@ const createPDFBuffer = async (quotation, templateName) => {
 };
 
 /**
- * 📧 Send Quotation Email with PDF Attachment
+ * 📧 Send Quotation Email with PDF Attachment via SendGrid
  * @param {string} toEmail - Client Email
  * @param {Object} quotation - Quotation Document
  * @param {String} templateName - The chosen template design
@@ -48,11 +54,10 @@ export const sendQuotationEmail = async (toEmail, quotation, templateName = 'cla
     const clientName = quotation.projectDetails?.clientName || "Valued Client";
     const grandTotal = quotation.pricing?.grandTotal || 0;
 
-    // 1. Generate PDF Buffer (Using the exact same UI as the download button!)
-    // 🔥 Pass the template name to the buffer creator
+    // 1. Generate PDF Buffer
     const pdfBuffer = await createPDFBuffer(quotation, templateName);
 
-    // 2. Email HTML Template (Clean & Professional)
+    // 2. Email HTML Template
     const html = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
         <div style="background-color: #0f172a; padding: 24px; text-align: center;">
@@ -87,27 +92,29 @@ export const sendQuotationEmail = async (toEmail, quotation, templateName = 'cla
       </div>
     `;
 
-    // 3. Mail Options with Attachment
-    const mailOptions = {
-      from: `"${companyName}" <${process.env.EMAIL_USER}>`,
+    // 3. Construct SendGrid Message Object
+    const msg = {
       to: toEmail,
+      from: process.env.EMAIL_USER, // 🔥 Must be your verified SendGrid Sender Email
+      replyTo: 'sanjaim0940r@gmail.com', // ✉️ Client reply pannuna unga personal mail-ku varum
       subject: `Quotation from ${companyName} (Ref: #${refNo})`,
       html: html,
       attachments: [
         {
+          content: pdfBuffer.toString('base64'), // 🔥 SendGrid requires base64 encoding for attachments
           filename: `Quotation_${refNo.replace(/\s+/g, '_')}.pdf`,
-          content: pdfBuffer,
-          contentType: "application/pdf"
-        }
-      ]
+          type: 'application/pdf',
+          disposition: 'attachment',
+        },
+      ],
     };
 
-    // 4. Send Email via configured transporter
-    await sendMail(mailOptions);
-    console.log(`✅ Email with Advanced PDF sent successfully to ${toEmail}`);
+    // 4. Send Email via SendGrid
+    await sgMail.send(msg);
+    console.log(`✅ Email with Advanced PDF sent successfully via SendGrid to ${toEmail}`);
 
   } catch (error) {
-    console.error("❌ Email Service Error:", error.message);
+    console.error("❌ Email Service Error:", error.response ? error.response.body : error.message);
     throw new Error("Failed to send email with quotation attachment.");
   }
 };

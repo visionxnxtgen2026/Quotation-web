@@ -7,7 +7,8 @@ import ProjectDetailsForm from "../../components/quotation/ProjectDetailsForm";
 import RateTableForm from "../../components/quotation/RateTableForm";
 import TermsPaymentForm from "../../components/quotation/TermsPaymentForm";
 
-const BASE_URL = `${import.meta.env.VITE_API_URL}/api/register`
+// 🔥 BUG FIXED: Changed from /api/register to /api/quotations
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api/quotations`
 
 // ==============================
 // 🌐 API CALLS

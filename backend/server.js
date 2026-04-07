@@ -15,8 +15,7 @@ import { fileURLToPath } from "url";
 // ⚙️ CONFIG & ROUTES
 // ==============================
 import connectDB from "./config/db.js";
-// 🚫 MAIL TEMP DISABLED (IMPORTANT)
-// import { verifyMailConnection } from "./config/mail.js";
+import { verifyMailConnection } from "./config/mail.js"; // ✅ Re-enabled for SendGrid!
 
 import authRoutes from "./routes/authRoutes.js";
 import quotationRoutes from "./routes/quotationRoutes.js";
@@ -108,7 +107,7 @@ app.use(errorHandler);
 // ==============================
 // 🚀 START SERVER (RAILWAY SAFE)
 // ==============================
-const PORT = process.env.PORT; // ✅ Railway dynamic port
+const PORT = process.env.PORT || 8080; // ✅ Added fallback for safety
 
 let server;
 
@@ -127,8 +126,12 @@ const startServer = () => {
         console.error("❌ DB Error:", err.message)
       );
 
-      // 🚫 MAIL DISABLED (IMPORTANT)
-      console.log("⚠️ Mail service disabled (temporary)");
+      // ✅ MAIL CHECK (SENDGRID VERIFIED)
+      if (typeof verifyMailConnection === "function") {
+        verifyMailConnection().catch((err) => {
+          console.log("⚠️ Mail check failed, but server is still running safely");
+        });
+      }
     });
   } catch (error) {
     console.error("❌ Startup Error:", error.message);

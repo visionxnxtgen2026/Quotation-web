@@ -15,7 +15,8 @@ import { fileURLToPath } from "url";
 // ⚙️ CONFIG & ROUTES
 // ==============================
 import connectDB from "./config/db.js";
-import { verifyMailConnection } from "./config/mail.js";
+// 🚫 MAIL TEMP DISABLED (IMPORTANT)
+// import { verifyMailConnection } from "./config/mail.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import quotationRoutes from "./routes/quotationRoutes.js";
@@ -107,7 +108,7 @@ app.use(errorHandler);
 // ==============================
 // 🚀 START SERVER (RAILWAY SAFE)
 // ==============================
-const PORT = process.env.PORT; // 🔥 Added Fallback (8080) for safety
+const PORT = process.env.PORT; // ✅ Railway dynamic port
 
 let server;
 
@@ -126,12 +127,8 @@ const startServer = () => {
         console.error("❌ DB Error:", err.message)
       );
 
-      // ✅ MAIL CHECK (SAFE VERSION)
-      if (typeof verifyMailConnection === "function") {
-        verifyMailConnection().catch((err) => {
-          console.log("⚠️ Mail failed, server still running");
-        });
-      }
+      // 🚫 MAIL DISABLED (IMPORTANT)
+      console.log("⚠️ Mail service disabled (temporary)");
     });
   } catch (error) {
     console.error("❌ Startup Error:", error.message);

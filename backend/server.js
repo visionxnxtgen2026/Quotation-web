@@ -32,12 +32,18 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 🔥 Auto-create uploads folder so Multer/PDF generation doesn't crash
-const uploadDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log("📁 Created 'uploads' directory for assets.");
-}
+// 🔥 Auto-create ALL upload folders so Multer/PDF generation doesn't crash
+const uploadDirs = [
+  path.join(__dirname, "uploads"),
+  path.join(__dirname, "uploads", "profiles"), // Explicitly create profiles folder
+];
+
+uploadDirs.forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+    console.log(`📁 Created directory: ${dir}`);
+  }
+});
 
 // ==============================
 // 🔒 SECURITY & CORS
@@ -49,6 +55,7 @@ app.use(helmet({
 // Allowed frontend URLs
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://quotation-web-wheat.vercel.app", // 🔥 EXPLICITLY ADDED YOUR VERCEL URL
   process.env.CLIENT_URL,
 ].filter(Boolean);
 

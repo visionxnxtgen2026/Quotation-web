@@ -5,27 +5,31 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 
-// CONFIG
 import connectDB from "./config/db.js";
 import { verifyMailConnection } from "./config/mail.js";
 
-// ROUTES
 import authRoutes from "./routes/authRoutes.js";
 import quotationRoutes from "./routes/quotationRoutes.js";
 import exportRoutes from "./routes/exportRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import subscriptionRoutes from "./routes/subscriptionRoutes.js";
-
-// MIDDLEWARE
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
 
 // ==============================
-// DATABASE CONNECTION
+// DATABASE
 // ==============================
+try {
 await connectDB();
+console.log("✅ Database connected");
+} catch (err) {
+console.error("❌ DB Error:", err.message);
+}
 
+// ==============================
+// MAIL
+// ==============================
 try {
 await verifyMailConnection();
 console.log("✅ Mail Service Ready");
@@ -77,7 +81,7 @@ app.use(morgan("dev"));
 }
 
 // ==============================
-// HEALTH CHECK
+// ROUTES
 // ==============================
 app.get("/health", (req, res) => {
 res.status(200).send("OK");
@@ -90,9 +94,6 @@ message: "VisionX API running 🚀",
 });
 });
 
-// ==============================
-// API ROUTES
-// ==============================
 app.use("/api/auth", authRoutes);
 app.use("/api/quotations", quotationRoutes);
 app.use("/api/export", exportRoutes);
@@ -106,7 +107,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ==============================
-// LOCAL DEVELOPMENT ONLY
+// LOCAL DEV ONLY
 // ==============================
 if (process.env.NODE_ENV !== "production") {
 const PORT = process.env.PORT || 8080;
